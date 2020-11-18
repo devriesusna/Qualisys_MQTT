@@ -21,7 +21,7 @@ example_dict = {
 	'y':'1',
 	'z':'2'
 }
-
+#function definition
 def on_packet(packet):
     """ Callback function that is called everytime a data packet arrives from QTM """
     global pub_topics

@@ -34,7 +34,7 @@ topiclist=[
         'bodyD'
 ]
 
-#a basic callback for MQTT that prints message data directly.
+# basic callback for MQTT that prints message data directly.
 def print_message(client,userdata,message):
 	print()
 	print("mqtt rx:")
