@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 client = MQTT.Client("qtm_pub")
 
+# initialize global array of publish topics (will be appended with rigid body names)
 pub_topics = [
 	'timestamp'
 	]
@@ -40,9 +41,12 @@ def on_packet(packet):
     print(type(bodies))
     count = 1
     for body in bodies:
-        msg = {"x":str(body[0][0]),"y":str(body[0][1]),"z":str(body[0][2])}
-        print("\t\n",pub_topics[count],msg,"\t\n")
-        client.publish(pub_topics[count],json.dumps(msg))
+        msg_pos = {"x":str(body[0][0]),"y":str(body[0][1]),"z":str(body[0][2])}
+        msg_ortn = {"R":body[1][0]}
+        print("\t\n",pub_topics[count]+'/'+'position',msg_pos,"\t\n")
+        print("\t\n",pub_topics[count]+'/'+'orientation',msg_ortn,"\t\n")
+        client.publish(pub_topics[count]+'/'+'position',json.dumps(msg_pos))
+        client.publish(pub_topics[count]+'/'+'orientation',json.dumps(msg_ortn))
         count = count+1
 
 
