@@ -9,10 +9,10 @@ import qtm
 import time
 import xml.etree.ElementTree as ET
 
-items = []
+bodyNames = [];
 
 def parseXML(xmlfile): 
-  
+    global bodyNames
     # create element tree object 
     tree = ET.parse(xmlfile)
   
@@ -23,19 +23,37 @@ def parseXML(xmlfile):
     # find the names of all the body elements
     for rigbod in root.iter('Name'):
         print(rigbod.text)
-        items.append(str(rigbod.text))
-    #print(items)
+        bodyNames.append(str(rigbod.text))
+    #print(bodyNames)
     # TODO: What to do if it returns no rigid bodies
 
 
 def on_packet(packet):
+    global bodyNames
     """ Callback function that is called everytime a data packet arrives from QTM """
     print("Framenumber: {}".format(packet.framenumber))
-    header, bodies = packet.get_6d()
-    print("Component info: {}".format(header))
-    print(items)
-    for body in bodies:
-        print("\t", body)
+    print(packet.components)
+    if qtm.packet.QRTComponentType.Component6d in packet.components:
+        print('6D Packet')
+        header, bodies = packet.get_6d()
+        print("Component info: {}".format(header))
+        count = 0
+        for body in bodies:
+            print("\t",bodyNames[count] , body,"\n")
+            count = count+1
+    elif qtm.packet.QRTComponentType.Component6dEuler in packet.components:
+        print('6D euler packet')
+        header, bodies = packet.get_6d_euler()
+        count = 0
+        for body in bodies:
+            print("\t",bodyNames[count] , body,"\n")
+            count = count+1
+    else:
+        print("New packet type")
+    
+    print(bodyNames)
+    
+    
 
 
 async def setup():
