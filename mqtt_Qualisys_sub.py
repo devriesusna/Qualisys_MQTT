@@ -28,9 +28,10 @@ log.addHandler(file_handler)
 client=MQTT.Client(clientname)
 topiclist=[
 	'timestamp',
-        'bodyA',
-        'bodyB',
-        'bodyC',
+        'STARBOARD ROTOR',
+        'PORT ROTOR',
+        'W2P2',
+        'KITE',
         'bodyD'
 ]
 
