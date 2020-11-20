@@ -6,14 +6,14 @@ from datetime import datetime
 from gc import collect as trash
 import json
 import os
-from server import *
+from config import *
 
 DEBUGGING=1
 
 #                       #
 #-----Logging Setup-----#
 #                       #
-filename='/Users/Levi DeVries/Downloads/mqtt_1.log'
+filename=datetime.now().strftime(default_folder+'mqtt_%Y%m%d_%H:%M:%s.log')
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 format = logging.Formatter('%(asctime)s : %(message)s')
@@ -27,12 +27,7 @@ log.addHandler(file_handler)
 #                       #
 client=MQTT.Client(clientname)
 topiclist=[
-	'timestamp',
-        'STARBOARD ROTOR',
-        'PORT ROTOR',
-        'W2P2',
-        'KITE',
-        'bodyD'
+        'qtm'
 ]
 
 # basic callback for MQTT that prints message data directly.
@@ -65,7 +60,7 @@ def setup_subscription():
 	check=0
 	try:
 		# Connect to the server (defined by server.py)
-		client.connect(server)
+		client.connect(mqtt_server)
 
 		# Assigns the callback function when a mqtt message is received.
 		if (DEBUGGING):
