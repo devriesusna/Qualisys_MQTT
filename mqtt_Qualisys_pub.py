@@ -24,9 +24,9 @@ def parseXML(xml):
     #root = tree.getroot()
     root=ET.fromstring(xml)
 
-    body_total=int(root[0][0].text)+1
+    body_total=int(root[0][0].text)
     i=1
-    while (i<body_total):
+    while (i<(body_total+1)):
         body_names[i]=str(root[0][i][0].text)
         if (DEBUGGING):
             print("index: "+str(i)+", name: "+str(root[0][i][0].text)+", total: "+str(body_total))
