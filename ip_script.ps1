@@ -1,3 +1,11 @@
+# Use startup.cmd to autostart this as necessary (ie, at login delay 30s).
+# Place startup.cmd in Win+R shell:startup.
+# Create task in Task Scheduler to start.
+#
+# May require adding user to batch jobs.
+# Local Security Policy -> Local Policies / User Rights Assignment -> "Log on as batch job", add user(s) as necessary.
+#
+#
 #https://github.com/microsoft/WSL/issues/4150
 # edwindijas commented on Jun 20, 2019 • 
 # WSL 2 TPC NETWORK FORWARDING
