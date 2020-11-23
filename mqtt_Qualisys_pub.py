@@ -24,7 +24,7 @@ def parseXML(xml):
     #root = tree.getroot()
     root=ET.fromstring(xml)
 
-    body_total=int(root[0][0].text)
+    body_total=int(root[0][0].text)+1
     i=1
     while (i<body_total):
         body_names[i]=str(root[0][i][0].text)
@@ -38,6 +38,7 @@ def parseXML(xml):
 def on_packet(packet):
     """ Callback function that is called everytime a data packet arrives from QTM """
     global body_names
+    prepend='surf/qtm/'
 #    print("Framenumber: {}".format(packet.framenumber))
     [header, bodies] = packet.get_6d()
     body_count=header[0]
@@ -51,10 +52,13 @@ def on_packet(packet):
         rotation = data[1][0]
         #print(rotation)
         try:
-            client.publish('qtm/'+body_names[i]+'/rotation',json.dumps(rotation))
-            client.publish('qtm/'+body_names[i]+'/position',json.dumps(xyz))
+            client.publish(prepend+body_names[i]+'/rotation',json.dumps(rotation))
+            client.publish(prepend+body_names[i]+'/position',json.dumps(xyz))
+            print("published: "+prepend+body_names[i])
         except:
-            pass
+            print("failed to publish:")
+            print(i)
+            print(body_names[i])
         i+=1
 
 

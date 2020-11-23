@@ -27,7 +27,7 @@ log.addHandler(file_handler)
 #                       #
 client=MQTT.Client(clientname)
 topiclist=[
-        'qtm'
+    'surf/#'
 ]
 
 # basic callback for MQTT that prints message data directly.
@@ -35,7 +35,7 @@ def print_message(client,userdata,message):
 	print()
 	print("mqtt rx:")
 	print(message.topic)
-	print(message.qos)
+	#print(message.qos)
 	print(message.payload)
 	print(message.payload.decode())
 	print(message.retain)
@@ -70,14 +70,16 @@ def setup_subscription():
 
 		# Subscribes to all the topics defined at top.
 		for i in topiclist:
-			client.subscribe(i+'/'+'#')
+			client.subscribe(i)
+			print("subscribed to: "+str(i))
 
 		# Start the mqtt subscription.
 		client.loop_start()
+		print("Connected to MQTT server: "+mqtt_server)
 		log.info("mqtt subscription script started")
 		check=1
 	except:
-		print("didn't connect")
+		print("didn't connect to MQTT server.")
 		log.info("mqtt subscription failed")
 	return check
 
