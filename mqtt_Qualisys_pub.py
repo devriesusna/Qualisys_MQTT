@@ -10,7 +10,7 @@ from config import *
 
 DEBUGGING=1
 
-client = MQTT.Client("qtm_pub")
+client = MQTT.Client(pub_clientname)
 
 
 body_names={}
@@ -67,7 +67,7 @@ async def setup():
     # Connect to MQTT Broker
     try:
             client.connect(mqtt_server)
-            print("Connected to MQTT broker")
+            print("Connected to MQTT broker: "+mqtt_server)
     except:
             print("didn't connect")
 
