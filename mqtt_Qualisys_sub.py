@@ -25,7 +25,7 @@ log.addHandler(file_handler)
 #                       #
 #-------MQTT Setup------#
 #                       #
-client=MQTT.Client(clientname)
+client=MQTT.Client(sub_clientname)
 topiclist=[
     'surf/#'
 ]
