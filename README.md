@@ -19,8 +19,8 @@ To get mosquito running automatically at windows startup,
 add line:
 %sudo   ALL=(ALL) NOPASSWD: /usr/sbin/service mosquitto *
 
+Add "autoexec.bat" and "startup.cmd" to Win10 startup folder.
 Winbutton+r : shell:startup
-Create file autoexec.bat
-Add line:
-wsl sudo service mosquitto start
+Create task to run startup.cmd at login.
 
+If issues, it's probably admin rights. See comments in ip_script.ps1 for additional T/S, how to change local policy.
