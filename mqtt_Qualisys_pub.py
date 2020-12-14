@@ -7,6 +7,7 @@ import asyncio
 import qtm
 import xml.etree.ElementTree as ET
 from config import *
+from math import isnan
 
 DEBUGGING=1
 
@@ -42,21 +43,21 @@ def publish_6d(pkt):
 	i=1
 	for data in bodies:
 		xyz={
-			'x':(data[0][0]),
-			'y':(data[0][1]),
-			'z':(data[0][2])
+			'x':round(data[0][0],2),
+			'y':round(data[0][1],2),
+			'z':round(data[0][2],2)
 		}
 		rotation = data[1][0]
 		#print(rotation)
-		try:
-			client.publish(prepend+body_names[i]+'/rotation',json.dumps(rotation))
-			client.publish(prepend+body_names[i]+'/position',json.dumps(xyz))
-			# print("published: "+prepend+body_names[i])
-		except:
-			print("failed to publish 6dof:")
-			print(i)
-			print(body_names[i])
-		
+		if (not (isnan(xyz['x']) or isnan(xyz['y']) or isnan(xyz['z']))):
+			try:
+				client.publish(prepend+body_names[i]+'/rotation',json.dumps(rotation))
+				client.publish(prepend+body_names[i]+'/position',json.dumps(xyz))
+				#print("published: "+prepend+body_names[i])
+			except:
+				print("failed to publish 6dof:")
+				print(i)
+				print(body_names[i])
 		i+=1
 
 def publish_euler(pkt):
@@ -67,18 +68,19 @@ def publish_euler(pkt):
 	i=1
 	for data in bodies:
 		rph={
-			'r':data[1][0],
-			'p':data[1][1],
-			'h':data[1][2]
+			'r':round(data[1][0],2),
+			'p':round(data[1][1],2),
+			'h':round(data[1][2],2)
 		}
 		# print(rph)
-		try:
-			client.publish(prepend+body_names[i]+'/euler',json.dumps(rph))
-			print("published: "+prepend+body_names[i])
-		except:
-			print("failed to publish euler:")
-			print(i)
-			print(body_names[i])
+		if (not (isnan(rph['r']) or isnan(rph['p']) or isnan(rph['h']))):
+			try:
+				client.publish(prepend+body_names[i]+'/euler',json.dumps(rph))
+				print("published: "+prepend+body_names[i])
+			except:
+				print("failed to publish euler:")
+				print(i)
+				print(body_names[i])
 		i+=1
 
 #function definition
