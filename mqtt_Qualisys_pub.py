@@ -37,35 +37,35 @@ def on_packet(packet):
     #print("Framenumber: {}".format(packet.framenumber))
     if "6d" in strm_qtys:
         #print("6D Packet\n")
-        [header, bodies] = packet.get_6d()
+        header, bodies = packet.get_6d()
         #print("Component info: {}".format(header))
-        #print(type(bodies))
-        count = 1
-        for rigid_body in bodies:
-            msg_pos = {"x":str(rigid_body[0][0]),"y":str(rigid_body[0][1]),"z":str(rigid_body[0][2])}
-            msg_ortn = {"R":rigid_body[1][0]}
-            #print("\t\n",pub_topics[count]+'/'+'position',msg_pos,"\t\n")
-            #print("\t\n",pub_topics[count]+'/'+'orientation',msg_ortn,"\t\n")
-            client.publish(pub_topics[0]+'/'+'position',json.dumps(msg_pos))
-            client.publish(pub_topics[0]+'/'+'orientation',json.dumps(msg_ortn))
-            count = count+1
+        for i in range(len(wanted_bodies)):
+            if wanted_bodies[i] in body_index:
+                msg_pos = {"name":wanted_bodies[i],"x":str(bodies[i][0][0]),"y":str(bodies[i][0][1]),"z":str(bodies[i][0][2])}
+                msg_ortn = {"R":bodies[i][1][0]}
+                print(msg_pos)
+                print(msg_ortn)
+                client.publish(pub_topics[0]+'/'+'position',json.dumps(msg_pos))
+                client.publish(pub_topics[0]+'/'+'orientation',json.dumps(msg_ortn))
+            
     if "6deuler" in strm_qtys:
         #print('6D Euler Angle Packet')
-        header,rigid_bodies_euler = packet.get_6d_euler()
-        count = 1
-        for rigid_body_euler in rigid_bodies_euler:
-            msg_pos = {"x":str(rigid_body_euler[0][0]),"y":str(rigid_body_euler[0][1]),"z":str(rigid_body_euler[0][2])}
-            msg_ortn = {"a1":rigid_body_euler[1][0],"a2":rigid_body_euler[1][1],"a3":rigid_body_euler[1][2]}
-            #print("\t\n",pub_topics[count]+'/'+'position',msg_pos,"\t\n")
-            #print("\t\n",pub_topics[count]+'/'+'orientation',msg_ortn,"\t\n")
-            client.publish(pub_topics[1]+'/'+'position',json.dumps(msg_pos))
-            client.publish(pub_topics[1]+'/'+'orientation',json.dumps(msg_ortn))
-            count = count+1
-            #print(count)
+        header,bodies_euler = packet.get_6d_euler()
+        for i in range(len(wanted_bodies)):
+            if wanted_bodies[i] in body_index:
+                msg_pos = {"name":wanted_bodies[i],"x":str(bodies_euler[i][0][0]),"y":str(bodies_euler[i][0][1]),"z":str(bodies_euler[i][0][2])}
+                msg_ortn = {"a1":bodies_euler[i][1][0],"a2":bodies_euler[i][1][1],"a3":bodies_euler[i][1][2]}
+                # print(msg_pos)
+                # print(msg_ortn)
+                client.publish(pub_topics[1]+'/'+'position',json.dumps(msg_pos))
+                client.publish(pub_topics[1]+'/'+'orientation',json.dumps(msg_ortn))
+            
     
 async def setup():
     """ Main function """
     # Connect to MQTT Broker
+    global wanted_bodies
+    global body_index
     try:
         # Connect to MQTT broker
         client.connect(broker_address, port)
@@ -81,8 +81,8 @@ async def setup():
     # Get 6dof settings from qtm
     xml_string = await connection.get_parameters(parameters=["6d"])
     body_index = create_body_index(xml_string)
-    print(body_index)
-
+    wanted_bodies = list(body_index.keys())
+    
     
     await connection.stream_frames(components=strm_qtys, on_packet=on_packet)
 
@@ -95,8 +95,8 @@ client.on_connect = on_connect  # Set the on_connect callback function
 broker_address = "10.24.6.23"
 port = 1883
 
-
-
+body_index = [] # initialize body_index as global variable
+wanted_bodies = [] # initializes wanted_bodies as global variable, specify names wanted here
 
 if __name__ == "__main__":
     asyncio.ensure_future(setup())
