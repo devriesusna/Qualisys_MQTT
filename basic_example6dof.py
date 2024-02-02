@@ -1,78 +1,91 @@
 """
-    Minimal usage example
-    Connects to QTM and streams 3D data forever
-    (start QTM first, load file, Play->Play with Real-Time output)
+    Streaming 6Dof from QTM
 """
 
 import asyncio
-import qtm
-import time
 import xml.etree.ElementTree as ET
+import pkg_resources
 
-bodyNames = [];
+import qtm_rt
 
-def parseXML(xmlfile): 
-    global bodyNames
-    # create element tree object 
-    tree = ET.parse(xmlfile)
-  
-    # get root element 
-    root = tree.getroot()
-    
-    
-    # find the names of all the body elements
-    for rigbod in root.iter('Name'):
-        print(rigbod.text)
-        bodyNames.append(str(rigbod.text))
-    #print(bodyNames)
-    # TODO: What to do if it returns no rigid bodies
+QTM_FILE = pkg_resources.resource_filename("qtm_rt", "data/Demo.qtm")
 
 
-def on_packet(packet):
-    global bodyNames
-    """ Callback function that is called everytime a data packet arrives from QTM """
-    print("Framenumber: {}".format(packet.framenumber))
-    print(packet.components)
-    if qtm.packet.QRTComponentType.Component6d in packet.components:
-        print('6D Packet')
-        header, bodies = packet.get_6d()
-        print("Component info: {}".format(header))
-        count = 0
-        for body in bodies:
-            print("\t",bodyNames[count] , body,"\n")
-            count = count+1
-    elif qtm.packet.QRTComponentType.Component6dEuler in packet.components:
-        print('6D euler packet')
-        header, bodies = packet.get_6d_euler()
-        count = 0
-        for body in bodies:
-            print("\t",bodyNames[count] , body,"\n")
-            count = count+1
-    else:
-        print("New packet type")
-    
-    print(bodyNames)
-    
-    
+def create_body_index(xml_string):
+    """ Extract a name to index dictionary from 6dof settings xml """
+    xml = ET.fromstring(xml_string)
 
+    body_to_index = {}
+    for index, body in enumerate(xml.findall("*/Body/Name")):
+        body_to_index[body.text.strip()] = index
 
-async def setup():
-    """ Main function """
-    connection = await qtm.connect("10.0.0.118")
+    return body_to_index
+
+def body_enabled_count(xml_string):
+    xml = ET.fromstring(xml_string)
+    return sum(enabled.text == "true" for enabled in xml.findall("*/Body/Enabled"))
+
+async def main():
+
+    # Connect to qtm
+    connection = await qtm_rt.connect("127.0.0.1")
+
+    # Connection failed?
     if connection is None:
+        print("Failed to connect")
         return
-    tmp = await connection.get_parameters(parameters=["6d"])
 
-    # saving the xml file 
-    with open('test.xml', 'wb') as f: 
-        f.write(tmp)
-    
-    # Parse xml file to pull out rigid body names
-    parseXML('test.xml')
-    # Start streaming frames and invoke callback "on_packet" when a frame comes in
+    # # Take control of qtm, context manager will automatically release control after scope end
+    # async with qtm_rt.TakeControl(connection, "password"):
+
+    #     realtime = True
+
+    #     if realtime:
+    #         # Start new realtime
+    #         await connection.new()
+    #     else:
+    #         # Load qtm file
+    #         await connection.load(QTM_FILE)
+
+    #         # start rtfromfile
+    #         await connection.start(rtfromfile=True)
+
+    # Get 6dof settings from qtm
+    xml_string = await connection.get_parameters(parameters=["6d"])
+    body_index = create_body_index(xml_string)
+
+    print("{} of {} 6DoF bodies enabled".format(body_enabled_count(xml_string), len(body_index)))
+
+    wanted_body = "PORT ROTOR"
+
+    def on_packet(packet):
+        info, bodies = packet.get_6d()
+        print(
+            "Framenumber: {} - Body count: {}".format(
+                packet.framenumber, info.body_count
+            )
+        )
+
+        if wanted_body is not None and wanted_body in body_index:
+            # Extract one specific body
+            wanted_index = body_index[wanted_body]
+            position, rotation = bodies[wanted_index]
+            print("{} - Pos: {} - Rot: {}".format(wanted_body, position, rotation))
+        else:
+            # Print all bodies
+            for position, rotation in bodies:
+                print("Pos: {} - Rot: {}".format(position, rotation))
+
+    # Start streaming frames
     await connection.stream_frames(components=["6d"], on_packet=on_packet)
+
+    # Wait asynchronously 5 seconds
+    await asyncio.sleep(5)
+
+    # Stop streaming
+    await connection.stream_frames_stop()
 
 
 if __name__ == "__main__":
-    asyncio.ensure_future(setup())
-    asyncio.get_event_loop().run_forever()
+    # Run our asynchronous function until complete
+    asyncio.get_event_loop().run_until_complete(main())
