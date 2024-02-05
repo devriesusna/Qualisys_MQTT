@@ -41,24 +41,21 @@ def on_packet(packet):
         #print("Component info: {}".format(header))
         for i in range(len(wanted_bodies)):
             if wanted_bodies[i] in body_index:
-                msg_pos = {"name":wanted_bodies[i],"x":str(bodies[i][0][0]),"y":str(bodies[i][0][1]),"z":str(bodies[i][0][2])}
-                msg_ortn = {"R":bodies[i][1][0]}
-                print(msg_pos)
-                print(msg_ortn)
-                client.publish(pub_topics[0]+'/'+'position',json.dumps(msg_pos))
-                client.publish(pub_topics[0]+'/'+'orientation',json.dumps(msg_ortn))
+                msg_DCM = {"name":wanted_bodies[i],"x":bodies[i][0][0],"y":bodies[i][0][1],"z":bodies[i][0][2],"R":bodies[i][1][0]}
+                #print(msg_pos)
+                client.publish(pub_topics[0],json.dumps(msg_DCM))
+                
             
     if "6deuler" in strm_qtys:
         #print('6D Euler Angle Packet')
         header,bodies_euler = packet.get_6d_euler()
         for i in range(len(wanted_bodies)):
             if wanted_bodies[i] in body_index:
-                msg_pos = {"name":wanted_bodies[i],"x":str(bodies_euler[i][0][0]),"y":str(bodies_euler[i][0][1]),"z":str(bodies_euler[i][0][2])}
-                msg_ortn = {"a1":bodies_euler[i][1][0],"a2":bodies_euler[i][1][1],"a3":bodies_euler[i][1][2]}
+                msg_pos = {"name":wanted_bodies[i],"x":bodies_euler[i][0][0],"y":bodies_euler[i][0][1],"z":bodies_euler[i][0][2],"yaw":bodies_euler[i][1][0],"pitch":bodies_euler[i][1][1],"roll":bodies_euler[i][1][2]}
                 # print(msg_pos)
                 # print(msg_ortn)
-                client.publish(pub_topics[1]+'/'+'position',json.dumps(msg_pos))
-                client.publish(pub_topics[1]+'/'+'orientation',json.dumps(msg_ortn))
+                client.publish(pub_topics[1],json.dumps(msg_pos))
+                #client.publish(pub_topics[1]+'/'+'orientation',json.dumps(msg_ortn))
             
     
 async def setup():
